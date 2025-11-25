@@ -1,7 +1,7 @@
 // Configuración de la aplicación
 export const config = {
   // Configurado para dispositivo físico en la red local
-  API_BASE_URL: 'http://10.183.197.184:8000',
+  API_BASE_URL: 'http://192.168.1.117:8000',
   API_VERSION: '/api/v1',
   
   FIREBASE_CONFIG: {
