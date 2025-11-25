@@ -25,7 +25,7 @@ export default function RegisterScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!formData.full_name || !formData.email || !formData.password) {
+    if (!formData.full_name || !formData.email || !formData.password || !formData.rut) {
       Alert.alert('Error', 'Por favor complete todos los campos obligatorios');
       return;
     }
@@ -43,10 +43,10 @@ export default function RegisterScreen({ navigation }: any) {
     setLoading(true);
     try {
       await register({
+        rut: formData.rut,
         full_name: formData.full_name,
         email: formData.email,
         password: formData.password,
-        rut: formData.rut || undefined,
       });
     } catch (error: any) {
       Alert.alert('Error', error.message);
@@ -86,7 +86,7 @@ export default function RegisterScreen({ navigation }: any) {
               editable={!loading}
             />
 
-            <Text style={styles.label}>RUT (opcional)</Text>
+            <Text style={styles.label}>RUT *</Text>
             <TextInput
               style={styles.input}
               placeholder="12345678-9"
@@ -190,6 +190,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 16,
     backgroundColor: '#fff',
+    color: '#1a1a1a',
   },
   button: {
     borderRadius: 8,

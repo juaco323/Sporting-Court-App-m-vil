@@ -2,6 +2,22 @@
 
 Aplicación móvil React Native con Expo para el sistema de reservas de canchas deportivas de la Universidad UNAB.
 
+## ⚠️ CONFIGURACIÓN IMPORTANTE
+
+### Configurar IP del Backend
+
+**Antes de ejecutar la app en tu dispositivo**, edita `src/config/index.ts`:
+
+```typescript
+// Para dispositivo físico, cambia a tu IP local:
+API_BASE_URL: 'http://192.168.1.X:8000', // Encuentra tu IP con: ipconfig
+
+// Para emulador Android (ya configurado):
+API_BASE_URL: 'http://10.0.2.2:8000',
+```
+
+Tu computadora y teléfono deben estar en la misma red Wi-Fi.
+
 ## 🚀 Características
 
 - **Autenticación**: Login, registro y autenticación con Firebase (Google, GitHub)

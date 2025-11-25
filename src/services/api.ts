@@ -9,9 +9,10 @@ import {
   AuthResponse,
   CreateReservationData,
 } from '../types';
+import { config } from '../config';
 
-const API_BASE_URL = 'http://localhost:8000'; // Cambiar a tu IP local o servidor
-const API_VERSION = '/api/v1';
+const API_BASE_URL = config.API_BASE_URL;
+const API_VERSION = config.API_VERSION;
 
 class ApiService {
   private api: AxiosInstance;
@@ -58,27 +59,40 @@ class ApiService {
     formData.append('username', credentials.email);
     formData.append('password', credentials.password);
 
-    const response = await this.api.post<AuthResponse>('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await this.api.post<{ access_token: string; token_type: string }>(
+      '/auth/login',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
 
-    // Guardar token y datos del usuario
+    // Guardar token primero
     await AsyncStorage.setItem('auth_token', response.data.access_token);
-    await AsyncStorage.setItem('user_data', JSON.stringify(response.data.user));
 
-    return response.data;
+    // Obtener datos del usuario
+    const userResponse = await this.api.get<User>('/users/me');
+    await AsyncStorage.setItem('user_data', JSON.stringify(userResponse.data));
+
+    return {
+      access_token: response.data.access_token,
+      token_type: response.data.token_type,
+      user: userResponse.data,
+    };
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await this.api.post<AuthResponse>('/auth/register', data);
+    const response = await this.api.post<User>('/auth/register', data);
 
-    // Guardar token y datos del usuario
-    await AsyncStorage.setItem('auth_token', response.data.access_token);
-    await AsyncStorage.setItem('user_data', JSON.stringify(response.data.user));
+    // El registro retorna el usuario, ahora necesitamos hacer login para obtener el token
+    const loginResponse = await this.login({
+      email: data.email,
+      password: data.password,
+    });
 
-    return response.data;
+    return loginResponse;
   }
 
   async loginWithFirebase(firebaseToken: string, email: string): Promise<AuthResponse> {
@@ -107,17 +121,35 @@ class ApiService {
 
   async getCourts(): Promise<Court[]> {
     const response = await this.api.get<Court[]>('/courts');
-    return response.data;
+    // Parsear features si vienen como string
+    return response.data.map(court => ({
+      ...court,
+      features: typeof court.features === 'string' 
+        ? JSON.parse(court.features) 
+        : court.features
+    }));
   }
 
   async getCourtById(id: number): Promise<Court> {
     const response = await this.api.get<Court>(`/courts/${id}`);
-    return response.data;
+    // Parsear features si vienen como string
+    return {
+      ...response.data,
+      features: typeof response.data.features === 'string'
+        ? JSON.parse(response.data.features)
+        : response.data.features
+    };
   }
 
   async getCourtsBySport(sport: string): Promise<Court[]> {
     const response = await this.api.get<Court[]>(`/courts/sport/${sport}`);
-    return response.data;
+    // Parsear features si vienen como string
+    return response.data.map(court => ({
+      ...court,
+      features: typeof court.features === 'string'
+        ? JSON.parse(court.features)
+        : court.features
+    }));
   }
 
   // ============ Reservas ============

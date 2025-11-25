@@ -2,9 +2,9 @@
 
 export interface User {
   id: number;
+  rut: string;
   email: string;
   full_name: string;
-  rut?: string;
   is_admin: boolean;
   is_active: boolean;
   created_at: string;
@@ -19,8 +19,10 @@ export interface Court {
   capacity: number;
   rating: number;
   price_per_hour: number;
-  features: string[];
+  features: string[] | string; // Puede venir como array o string JSON del backend
   image_url?: string;
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface Reservation {
@@ -43,10 +45,10 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData {
+  rut: string;
   email: string;
   password: string;
   full_name: string;
-  rut?: string;
 }
 
 export interface AuthResponse {

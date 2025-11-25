@@ -38,7 +38,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await ApiService.login(credentials);
       setUser(response.user);
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Error al iniciar sesión');
+      console.error('Login error:', error);
+      if (error.code === 'ECONNABORTED' || error.message === 'Network Error') {
+        throw new Error('No se pudo conectar al servidor. Verifica tu conexión.');
+      }
+      throw new Error(error.response?.data?.detail || error.message || 'Error al iniciar sesión');
     }
   };
 
@@ -47,7 +51,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await ApiService.register(data);
       setUser(response.user);
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Error al registrarse');
+      console.error('Register error:', error);
+      if (error.code === 'ECONNABORTED' || error.message === 'Network Error') {
+        throw new Error('No se pudo conectar al servidor. Verifica tu conexión.');
+      }
+      const errorMessage = error.response?.data?.detail;
+      if (typeof errorMessage === 'string') {
+        throw new Error(errorMessage);
+      } else if (Array.isArray(errorMessage)) {
+        throw new Error(errorMessage[0]?.msg || 'Error al registrarse');
+      }
+      throw new Error(error.message || 'Error al registrarse');
     }
   };
 

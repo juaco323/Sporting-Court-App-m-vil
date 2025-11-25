@@ -48,6 +48,8 @@ export default function CourtDetailScreen({ route, navigation }: any) {
 
   if (!court) return null;
 
+  const features = Array.isArray(court.features) ? court.features : [];
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
@@ -80,7 +82,7 @@ export default function CourtDetailScreen({ route, navigation }: any) {
         <View style={styles.featuresSection}>
           <Text style={styles.sectionTitle}>Características</Text>
           <View style={styles.featuresList}>
-            {court.features.map((feature, index) => (
+            {features.map((feature, index) => (
               <View key={index} style={styles.featureItem}>
                 <Text style={styles.featureIcon}>✓</Text>
                 <Text style={styles.featureText}>{feature}</Text>
