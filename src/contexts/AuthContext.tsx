@@ -1,0 +1,91 @@
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import ApiService from '../services/api';
+import { User, LoginCredentials, RegisterData } from '../types';
+
+interface AuthContextData {
+  user: User | null;
+  loading: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  loginWithFirebase: (firebaseToken: string, email: string) => Promise<void>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStoredUser();
+  }, []);
+
+  const loadStoredUser = async () => {
+    try {
+      const storedUser = await ApiService.getCurrentUser();
+      setUser(storedUser);
+    } catch (error) {
+      console.error('Error loading user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      const response = await ApiService.login(credentials);
+      setUser(response.user);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Error al iniciar sesión');
+    }
+  };
+
+  const register = async (data: RegisterData) => {
+    try {
+      const response = await ApiService.register(data);
+      setUser(response.user);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Error al registrarse');
+    }
+  };
+
+  const loginWithFirebase = async (firebaseToken: string, email: string) => {
+    try {
+      const response = await ApiService.loginWithFirebase(firebaseToken, email);
+      setUser(response.user);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Error con Firebase');
+    }
+  };
+
+  const logout = async () => {
+    await ApiService.logout();
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        loginWithFirebase,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
