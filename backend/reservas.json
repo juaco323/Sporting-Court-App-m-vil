@@ -1,0 +1,42 @@
+[
+  {
+    "id": "R001",
+    "usuario": "Usuario Demo",
+    "canchaId": "CAN-01",
+    "fecha": "2025-10-20",
+    "hora": "18:00",
+    "estado": "Reservada"
+  },
+  {
+    "id": "R002",
+    "usuario": "Usuario Demo",
+    "canchaId": "CAN-04",
+    "fecha": "2025-10-22",
+    "hora": "16:00",
+    "estado": "Confirmada"
+  },
+  {
+    "id": "R003",
+    "usuario": "Usuario Demo",
+    "canchaId": "CAN-07",
+    "fecha": "2025-10-18",
+    "hora": "19:30",
+    "estado": "Reservada"
+  },
+  {
+    "id": "R004",
+    "usuario": "Carlos Díaz",
+    "canchaId": "CAN-02",
+    "fecha": "2025-10-25",
+    "hora": "20:00",
+    "estado": "Confirmada"
+  },
+  {
+    "id": "R005",
+    "usuario": "Ana García",
+    "canchaId": "CAN-05",
+    "fecha": "2025-10-23",
+    "hora": "17:00",
+    "estado": "Reservada"
+  }
+]

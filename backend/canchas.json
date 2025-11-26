@@ -1,0 +1,11 @@
+[
+  {"id": "CAN-01", "deporte": "Fútbol", "nombre": "Cancha Central #1", "available": true},
+  {"id": "CAN-02", "deporte": "Fútbol", "nombre": "Cancha Norte #2", "available": true},
+  {"id": "CAN-03", "deporte": "Fútbol", "nombre": "Cancha Sur #3", "available": true},
+  {"id": "CAN-04", "deporte": "Tenis", "nombre": "Pista Tenis #1", "available": true},
+  {"id": "CAN-05", "deporte": "Tenis", "nombre": "Pista Tenis #2", "available": true},
+  {"id": "CAN-06", "deporte": "Tenis", "nombre": "Pista Tenis #3", "available": true},
+  {"id": "CAN-07", "deporte": "Pádel", "nombre": "Pista Pádel #1", "available": true},
+  {"id": "CAN-08", "deporte": "Pádel", "nombre": "Pista Pádel #2", "available": true},
+  {"id": "CAN-09", "deporte": "Pádel", "nombre": "Pista Pádel #3", "available": true}
+]

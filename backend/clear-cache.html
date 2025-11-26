@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔄 Limpiar Caché - Sistema de Reservas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px 5px;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .success {
+            background: #10b981;
+        }
+        .success:hover {
+            background: #059669;
+        }
+        .warning {
+            background: #f59e0b;
+        }
+        .warning:hover {
+            background: #d97706;
+        }
+        .instructions {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .instructions ol {
+            margin: 10px 0;
+        }
+        .instructions li {
+            margin: 10px 0;
+        }
+        .code {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .status.ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Limpiar Caché y Recargar Aplicación</h1>
+        
+        <div class="instructions">
+            <h3>📋 Instrucciones para Ver los Cambios:</h3>
+            <p><strong>El problema:</strong> Tu navegador está cargando la versión antigua de <code>vue-app.js</code> desde el caché.</p>
+            
+            <p><strong>La solución:</strong></p>
+            <ol>
+                <li><strong>Opción 1 (Recomendada):</strong> Presiona <code>Ctrl + Shift + R</code> en la aplicación principal para forzar recarga</li>
+                <li><strong>Opción 2:</strong> Presiona <code>Ctrl + F5</code> para recargar sin caché</li>
+                <li><strong>Opción 3:</strong> Usa los botones de abajo</li>
+            </ol>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="button success" onclick="clearAndReload()">
+                🧹 Limpiar localStorage y Recargar
+            </button>
+            <button class="button" onclick="openApp()">
+                🚀 Abrir Aplicación (sin caché)
+            </button>
+            <button class="button warning" onclick="clearCache()">
+                🗑️ Solo Limpiar localStorage
+            </button>
+        </div>
+
+        <div class="instructions">
+            <h3>✅ Cambios que Deberías Ver:</h3>
+            <ol>
+                <li><strong>Fechas Correctas:</strong> Al seleccionar el día 21, debe decir "martes 21 de octubre de 2025" (no 20)</li>
+                <li><strong>Reservas Visibles:</strong> Después de crear una reserva, debe aparecer en "Mis Reservas"</li>
+                <li><strong>Logs en Consola:</strong> Verás emojis (✅, 📊, 👤, etc.) en los mensajes de consola</li>
+                <li><strong>Contador Actualizado:</strong> El badge verde muestra el número correcto de reservas</li>
+            </ol>
+        </div>
+
+        <div class="instructions">
+            <h3>🔍 Verificar que Funcionó:</h3>
+            <p>Después de recargar, abre la consola (F12) y deberías ver mensajes como:</p>
+            <div class="code">
+✅ Reserva creada exitosamente: {...}<br>
+📊 Total de reservas en sistema: 1<br>
+👤 Usuario actual: Juan Pérez<br>
+🎯 Reservas filtradas del usuario: 1
+            </div>
+            <p>Si ves estos emojis, significa que el archivo nuevo se cargó correctamente.</p>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="instructions">
+            <h3>⚡ Atajos de Teclado Útiles:</h3>
+            <ul>
+                <li><code>Ctrl + Shift + R</code> - Recarga forzada sin caché</li>
+                <li><code>Ctrl + F5</code> - Recarga completa</li>
+                <li><code>F12</code> - Abrir consola de desarrollador</li>
+                <li><code>Ctrl + Shift + Delete</code> - Limpiar datos del navegador</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            setTimeout(() => {
+                status.textContent = '';
+                status.className = 'status';
+            }, 3000);
+        }
+
+        function clearCache() {
+            localStorage.clear();
+            sessionStorage.clear();
+            showStatus('✅ localStorage y sessionStorage limpiados', 'ok');
+            console.log('✅ Caché limpiado correctamente');
+        }
+
+        function clearAndReload() {
+            localStorage.clear();
+            sessionStorage.clear();
+            showStatus('✅ Limpiando y recargando...', 'ok');
+            setTimeout(() => {
+                window.location.href = 'http://127.0.0.1:8080?v=' + Date.now();
+            }, 1000);
+        }
+
+        function openApp() {
+            // Open with cache-busting parameter
+            window.location.href = 'http://127.0.0.1:8080?v=' + Date.now();
+        }
+
+        // Show current localStorage content
+        window.addEventListener('load', () => {
+            const reservations = localStorage.getItem('courtReservations');
+            const users = localStorage.getItem('registeredUsers');
+            console.log('📦 Reservas actuales:', reservations ? JSON.parse(reservations) : 'ninguna');
+            console.log('👥 Usuarios registrados:', users ? JSON.parse(users) : 'ninguno');
+        });
+    </script>
+</body>
+</html>

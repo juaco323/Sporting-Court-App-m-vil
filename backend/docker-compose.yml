@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # Backend FastAPI con SQLite
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: unab-sporting-backend
+    environment:
+      # Usar SQLite para simplificar deployment
+      DATABASE_URL: sqlite:///./sporting_court.db
+      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      # Permitir acceso desde frontend y localhost
+      CORS_ORIGINS: '["http://localhost:8080","http://localhost","http://127.0.0.1:8080","http://127.0.0.1"]'
+    volumes:
+      # Montar código para desarrollo (comentar en producción)
+      - ./backend:/app
+      # Persistir base de datos SQLite
+      - backend_db:/app/db_data
+    ports:
+      - "8000:8000"
+    networks:
+      - sporting-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: >
+      sh -c "
+        echo '🚀 Iniciando backend FastAPI...' &&
+        echo '📁 Verificando estructura de directorios...' &&
+        mkdir -p /app/db_data &&
+        echo '📦 Inicializando base de datos SQLite...' &&
+        python init_db.py &&
+        echo '✅ Base de datos lista' &&
+        echo '🌐 Iniciando servidor en puerto 8000...' &&
+        uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+  # Frontend servido con Nginx
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: unab-sporting-frontend
+    volumes:
+      # Configuración de Nginx personalizada
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - sporting-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  # Volumen persistente para base de datos SQLite
+  backend_db:
+    driver: local
+
+networks:
+  sporting-network:
+    driver: bridge

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas de Canchas - Vue.js</title>
+    <link rel="stylesheet" href="vue-styles.css?v=17.0">
+    <link href="https://unpkg.com/lucide@latest/dist/umd/lucide.js" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Optional: define ENV before loading services/app. Copy values from a local .env (manually) when serving statically.
+        window.ENV = window.ENV || {
+            OPENWEATHER_API_KEY: '61f6915417ca53ccd95fb615cc7fb019' // <- pega aquí tu API key en desarrollo
+        };
+    </script>
+</head>
+<body>
+    <div id="app">
+        <!-- Auth Section -->
+        <div v-if="currentView === 'auth'" class="page-section active">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">Reserva de Canchas</h1>
+                        <p class="auth-description">Accede o regístrate para reservar tu cancha deportiva</p>
+                    </div>
+                    <div class="auth-content">
+                        <div class="tabs">
+                            <div class="tabs-list">
+                                <button 
+                                    class="tab-trigger" 
+                                    :class="{ active: activeAuthTab === 'login' }"
+                                    @click="activeAuthTab = 'login'"
+                                >
+                                    Iniciar Sesión
+                                </button>
+                                <button 
+                                    class="tab-trigger" 
+                                    :class="{ active: activeAuthTab === 'register' }"
+                                    @click="activeAuthTab = 'register'"
+                                >
+                                    Registrarse
+                                </button>
+                            </div>
+                            
+                            <!-- Login Tab -->
+                            <div v-if="activeAuthTab === 'login'" class="tab-content active">
+                                <form @submit.prevent="handleLogin" class="auth-form">
+                                    <div class="form-group">
+                                        <label for="login-rut">Correo electronico</label>
+                                        <input 
+                                            type="email" 
+                                            id="login-rut" 
+                                            v-model="loginForm.rut"
+                                            placeholder="ejemplo@mail.cl" 
+                                            required 
+                                            class="form-input"
+                                        >
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="login-password">Contraseña</label>
+                                        <input 
+                                            type="password" 
+                                            id="login-password" 
+                                            v-model="loginForm.password"
+                                            placeholder="Ingresa tu contraseña" 
+                                            required 
+                                            class="form-input"
+                                        >
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-full">
+                                        Iniciar Sesión
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <!-- Register Tab -->
+                            <div v-if="activeAuthTab === 'register'" class="tab-content active">
+                                <form @submit.prevent="handleRegister" class="auth-form">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="register-nombre">Nombre</label>
+                                            <input 
+                                                type="text" 
+                                                id="register-nombre" 
+                                                v-model="registerForm.nombre"
+                                                placeholder="Tu nombre" 
+                                                required 
+                                                class="form-input"
+                                            >
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="register-apellido">Apellido</label>
+                                            <input 
+                                                type="text" 
+                                                id="register-apellido" 
+                                                v-model="registerForm.apellido"
+                                                placeholder="Tu apellido" 
+                                                required 
+                                                class="form-input"
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="register-rut">Rut</label>
+                                        <input 
+                                            type="text" 
+                                            id="register-rut" 
+                                            v-model="registerForm.rut"
+                                            placeholder="12345678-9" 
+                                            required 
+                                            class="form-input"
+                                        >
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="register-email">Correo Electrónico</label>
+                                        <input 
+                                            type="email" 
+                                            id="register-email" 
+                                            v-model="registerForm.email"
+                                            placeholder="tu@email.com" 
+                                            required 
+                                            class="form-input"
+                                        >
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="register-password">Contraseña</label>
+                                        <input 
+                                            type="password" 
+                                            id="register-password" 
+                                            v-model="registerForm.password"
+                                            placeholder="Crea una contraseña" 
+                                            required 
+                                            class="form-input"
+                                        >
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-full">
+                                        Registrarse
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div v-if="currentView === 'dashboard'" class="page-section">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1 class="header-title">Reserva de Canchas</h1>
+                    </div>
+                    <div class="header-right">
+                        <div class="user-info">
+                            <i data-lucide="user"></i>
+                            <span>{{ user?.nombre }} {{ user?.apellido }}</span>
+                        </div>
+                        <button @click="logout" class="btn btn-outline btn-sm">
+                            <i data-lucide="log-out"></i>
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-content">
+                <div class="nav-tabs">
+                    <button 
+                        class="nav-tab" 
+                        :class="{ active: activeDashboardTab === 'sports' }"
+                        @click="activeDashboardTab = 'sports'"
+                    >
+                        <i data-lucide="map-pin"></i>
+                        Reservar Cancha
+                    </button>
+                    <button 
+                        class="nav-tab" 
+                        :class="{ active: activeDashboardTab === 'reservations' }"
+                        @click="activeDashboardTab = 'reservations'"
+                    >
+                        <i data-lucide="calendar"></i>
+                        Mis Reservas
+                        <span v-if="filteredUserReservations.length > 0" class="reservation-count">({{ filteredUserReservations.length }})</span>
+                    </button>
+                </div>
+
+                <!-- Sports Tab -->
+                <div v-if="activeDashboardTab === 'sports'" class="tab-content active">
+                    <div class="section-header">
+                        <h2>Selecciona un Deporte</h2>
+                        <p>Elige el deporte que deseas practicar y encuentra la cancha perfecta</p>
+                    </div>
+                    <div class="sports-grid">
+                        <div 
+                            v-for="sport in sportsData" 
+                            :key="sport.name"
+                            @click="selectSport(sport.name)"
+                            class="sport-card"
+                            :class="`sport-card-${sport.color}`"
+                        >
+                            <div class="sport-icon">{{ sport.icon }}</div>
+                            <div class="sport-content">
+                                <h3 class="sport-name">{{ sport.name }}</h3>
+                                <p class="sport-description">{{ sport.description }}</p>
+                                <div class="sport-availability">
+                                    <span class="availability-badge">{{ sport.available }} disponibles</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reservations Tab -->
+                <div v-if="activeDashboardTab === 'reservations'" class="tab-content active">
+                    <div class="section-header">
+                        <div>
+                            <h2>Mis Reservas</h2>
+                            <p>Gestiona tus reservas actuales y próximas</p>
+                        </div>
+                        <div class="reservation-actions">
+                            <button class="btn btn-outline" @click="reloadReservations" :disabled="isLoadingReservations" title="Actualizar reservas">
+                                <i data-lucide="refresh-ccw" :class="{ 'animate-spin': isLoadingReservations }"></i>
+                                {{ isLoadingReservations ? 'Actualizando...' : 'Actualizar' }}
+                            </button>
+                            <div v-if="selectedReservation" style="display: inline-flex; gap: 10px;">
+                                <button class="btn btn-outline" @click="changeReservationTime">
+                                    <i data-lucide="clock"></i>
+                                    Cambiar Hora
+                                </button>
+                                <button class="btn btn-destructive" @click="showCancelDialog">
+                                    Cancelar Reserva
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reservations-content">
+                        <div v-if="filteredUserReservations.length === 0" class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <h3>No tienes reservas</h3>
+                            <p>Cuando hagas una reserva, aparecerá aquí</p>
+                        </div>
+                        
+                        <div v-else class="reservations-list">
+                            <div 
+                                v-for="reservation in filteredUserReservations" 
+                                :key="reservation.id"
+                                class="reservation-card"
+                                :class="{ 
+                                    selected: selectedReservation?.id === reservation.id,
+                                    cancelled: reservation.estado === 'Cancelada'
+                                }"
+                            >
+                                <div class="reservation-sport-icon">{{ getSportIcon(reservation.deporte) }}</div>
+                                <div class="reservation-content">
+                                    <div class="reservation-header">
+                                        <h4>{{ reservation.cancha }}</h4>
+                                        <span class="reservation-status" :class="getStatusClass(reservation.estado)">
+                                            {{ reservation.estado }}
+                                        </span>
+                                    </div>
+                                    <div class="reservation-details">
+                                        <p><i data-lucide="calendar"></i> {{ formatDate(reservation.fecha) }}</p>
+                                        <p><i data-lucide="clock"></i> {{ reservation.hora }}</p>
+                                        <p><i data-lucide="dribbble"></i> {{ reservation.deporte }}</p>
+                                        <p v-if="reservation.ubicacion"><i data-lucide="map-pin"></i> {{ reservation.ubicacion.city }}, Chile</p>
+                                    </div>
+                                </div>
+                                <div class="reservation-code">
+                                    <span>{{ reservation.codigo }}</span>
+                                </div>
+                                <div class="reservation-actions" v-if="reservation.estado === 'Reservada'">
+                                    <button 
+                                        class="btn-icon btn-edit" 
+                                        @click.stop="selectedReservation = reservation; changeReservationTime()"
+                                        title="Modificar reserva"
+                                    >
+                                        <i data-lucide="edit-3"></i>
+                                    </button>
+                                    <button 
+                                        class="btn-icon btn-cancel" 
+                                        @click.stop="selectedReservation = reservation; showCancelDialog()"
+                                        title="Cancelar reserva"
+                                    >
+                                        <i data-lucide="x-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Court Selection Section -->
+        <div v-if="currentView === 'court-selection'" class="page-section">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button @click="backToDashboard" class="btn btn-ghost">
+                            <i data-lucide="arrow-left"></i>
+                            Volver
+                        </button>
+                        <div class="header-sport">
+                            <span class="sport-icon">{{ getSportIcon(selectedSport) }}</span>
+                            <h1 class="header-title">{{ selectedSport }}</h1>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-content">
+                <div class="section-header">
+                    <h2>Selecciona una Cancha</h2>
+                    <p>Elige la cancha que mejor se adapte a tus necesidades</p>
+                </div>
+                <div class="courts-grid">
+                    <div 
+                        v-for="court in getAvailableCourts(selectedSport)" 
+                        :key="court.id"
+                        @click="selectCourt(court)"
+                        class="court-card"
+                        :class="{ unavailable: !court.available }"
+                    >
+                        <div class="court-header">
+                            <div class="court-title">
+                                <h3>{{ court.name }}</h3>
+                                <div class="court-rating">
+                                    <i data-lucide="star"></i>
+                                    <span>{{ court.rating }}</span>
+                                </div>
+                            </div>
+                            <div class="court-price">
+                                <span class="price">${{ formatPrice(court.pricePerHour) }}</span>
+                                <span class="price-unit">/hora</span>
+                            </div>
+                        </div>
+                        <div class="court-content">
+                            <p class="court-description">{{ court.description }}</p>
+                            <div class="court-features">
+                                <span 
+                                    v-for="feature in court.features.slice(0, 3)" 
+                                    :key="feature"
+                                    class="feature-badge"
+                                >
+                                    {{ feature }}
+                                </span>
+                                <span v-if="court.features.length > 3" class="feature-badge more">
+                                    +{{ court.features.length - 3 }} más
+                                </span>
+                            </div>
+                            <div class="court-capacity">
+                                <i data-lucide="users"></i>
+                                <span>Hasta {{ court.capacity }} personas</span>
+                            </div>
+                        </div>
+                        <div class="court-status" v-if="!court.available">
+                            <span class="status-badge unavailable">No disponible</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div v-if="currentView === 'calendar'" class="page-section">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button @click="backToCourts" class="btn btn-ghost">
+                            <i data-lucide="arrow-left"></i>
+                            Volver
+                        </button>
+                        <div class="header-sport">
+                            <span class="sport-icon">{{ getSportIcon(selectedSport) }}</span>
+                            <h1 class="header-title">{{ selectedCourt?.name }}</h1>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-content">
+                <div class="calendar-grid">
+                    <div class="calendar-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i data-lucide="calendar"></i>
+                                Selecciona una fecha
+                            </h3>
+                            <p class="card-description">Elige el día que deseas reservar la cancha</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="calendar">
+                                <div class="calendar-header">
+                                    <button @click="previousMonth" class="calendar-nav">
+                                        <i data-lucide="chevron-left"></i>
+                                    </button>
+                                    <h4>{{ monthNames[currentMonth] }} {{ currentYear }}</h4>
+                                    <button @click="nextMonth" class="calendar-nav">
+                                        <i data-lucide="chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="calendar-grid-days">
+                                    <div class="calendar-weekdays">
+                                        <div v-for="day in weekDays" :key="day" class="weekday">{{ day }}</div>
+                                    </div>
+                                    <div class="calendar-days">
+                                        <button
+                                            v-for="day in calendarDays"
+                                            :key="`${day.date}-${day.isCurrentMonth}`"
+                                            @click="selectDate(day)"
+                                            class="calendar-day"
+                                            :class="{
+                                                'other-month': !day.isCurrentMonth,
+                                                'selected': selectedDate === day.fullDate,
+                                                'today': day.isToday,
+                                                'disabled': day.isPast
+                                            }"
+                                            :disabled="day.isPast || !day.isCurrentMonth"
+                                        >
+                                            <span class="day-number"></span>{{ day.date }}</span>
+                                            <span v-if="getWeatherForDate(day.fullDate)" class="day-weather">
+                                                {{ getWeatherIcon(getWeatherForDate(day.fullDate).weather) }}
+                                                <span class="day-temp">{{ getWeatherForDate(day.fullDate).temp }}°</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="selectedDate" class="date-info">
+                                <p><strong>Fecha seleccionada:</strong> {{ formatSelectedDate() }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="time-slots-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i data-lucide="clock"></i>
+                                Horarios disponibles
+                            </h3>
+                            <p class="card-description">
+                                {{ selectedDate ? `Horarios para ${formatSelectedDate()}` : 'Selecciona una fecha para ver los horarios' }}
+                            </p>
+                        </div>
+                        <div class="card-content">
+                            <div v-if="!selectedDate" class="no-date-selected">
+                                <i data-lucide="clock" class="no-date-icon"></i>
+                                <p>Selecciona una fecha para ver los horarios disponibles</p>
+                            </div>
+                            <div v-else class="time-slots">
+                                <button
+                                    v-for="slot in availableTimeSlots"
+                                    :key="slot.time"
+                                    @click="selectTimeSlot(slot.time)"
+                                    class="time-slot"
+                                    :class="{ 
+                                        'selected': selectedTime === slot.time,
+                                        'occupied': slot.occupied,
+                                        'past': isTimeSlotPast(slot.time)
+                                    }"
+                                    :disabled="slot.occupied || isTimeSlotPast(slot.time)"
+                                >
+                                    <span class="slot-time">{{ slot.time }}</span>
+                                    <span v-if="isTimeSlotPast(slot.time)" class="slot-past-label">Pasado</span>
+                                    <span v-if="getWeatherForHour(selectedDate, slot.time)" class="slot-weather">
+                                        <span class="weather-icon">{{ getWeatherIcon(getWeatherForHour(selectedDate, slot.time).weather) }}</span>
+                                        <span class="weather-info">
+                                            <span class="weather-desc">{{ getWeatherForHour(selectedDate, slot.time).description }}</span>
+                                            <span class="weather-temp">{{ getWeatherForHour(selectedDate, slot.time).temp }}°C</span>
+                                        </span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="court-info-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i data-lucide="map-pin"></i>
+                            Información de la cancha
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="court-info">
+                            <div class="court-info-main">
+                                <h4>{{ selectedCourt?.name }}</h4>
+                                <p>{{ selectedCourt?.description }}</p>
+                                <div class="court-info-details">
+                                    <div class="info-item">
+                                        <i data-lucide="users"></i>
+                                        <span>Capacidad: {{ selectedCourt?.capacity }} personas</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i data-lucide="star"></i>
+                                        <span>Rating: {{ selectedCourt?.rating }}/5</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i data-lucide="dollar-sign"></i>
+                                        <span>Precio: ${{ formatPrice(selectedCourt?.pricePerHour) }}/hora</span>
+                                    </div>
+                                    <div class="info-item" v-if="selectedCourt?.location">
+                                        <i data-lucide="map-pin"></i>
+                                        <span>{{ selectedCourt.location.city }}, Chile</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="court-features-full">
+                                <h5>Características:</h5>
+                                <ul>
+                                    <li v-for="feature in selectedCourt?.features" :key="feature">{{ feature }}</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button 
+                            v-if="selectedDate && selectedTime"
+                            @click="showConfirmDialog"
+                            class="btn btn-primary btn-full"
+                        >
+                            Reservar por ${{ formatPrice(selectedCourt?.pricePerHour) }}
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Section -->
+        <div v-if="currentView === 'success'" class="page-section">
+            <div class="success-container">
+                <div class="success-card">
+                    <div class="success-header">
+                        <div class="success-icon">
+                            <i data-lucide="check-circle"></i>
+                        </div>
+                        <h1 class="success-title">¡Reserva Exitosa!</h1>
+                        <p class="success-description">Tu cancha ha sido reservada correctamente</p>
+                    </div>
+                    
+                    <div class="success-content">
+                        <div class="reservation-details">
+                            <h3>Detalles de la Reserva</h3>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <i data-lucide="map-pin"></i>
+                                    <div>
+                                        <span class="detail-label">Cancha</span>
+                                        <span class="detail-value">{{ lastReservation?.cancha }}</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i data-lucide="calendar"></i>
+                                    <div>
+                                        <span class="detail-label">Fecha</span>
+                                        <span class="detail-value">{{ formatDate(lastReservation?.fecha) }}</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i data-lucide="clock"></i>
+                                    <div>
+                                        <span class="detail-label">Hora</span>
+                                        <span class="detail-value">{{ lastReservation?.hora }}</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i data-lucide="dollar-sign"></i>
+                                    <div>
+                                        <span class="detail-label">Total</span>
+                                        <span class="detail-value">${{ formatPrice(lastReservation?.precio) }}</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item" v-if="lastReservation?.ubicacion">
+                                    <i data-lucide="navigation"></i>
+                                    <div>
+                                        <span class="detail-label">Ubicación</span>
+                                        <span class="detail-value">{{ lastReservation.ubicacion.city }}, Chile</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="reservation-code">
+                            <h4>Código de Reserva</h4>
+                            <div class="code-display">{{ lastReservation?.codigo }}</div>
+                            <p class="code-description">Presenta este código en recepción</p>
+                        </div>
+                        
+                        <div class="success-actions">
+                            <div class="action-row">
+                                <button class="btn btn-outline btn-flex" @click="downloadReservation">
+                                    <i data-lucide="download"></i>
+                                    Descargar
+                                </button>
+                                <button class="btn btn-outline btn-flex" @click="shareReservation">
+                                    <i data-lucide="share"></i>
+                                    Compartir
+                                </button>
+                            </div>
+                            <button @click="viewReservations" class="btn btn-primary btn-full">
+                                Ver Mis Reservas
+                            </button>
+                            <button @click="newReservation" class="btn btn-outline btn-full">
+                                Hacer Nueva Reserva
+                            </button>
+                        </div>
+                        
+                        <div class="important-info">
+                            <h4>Información Importante</h4>
+                            <ul>
+                                <li>• Llega 10 minutos antes de tu hora reservada</li>
+                                <li>• Presenta tu código de reserva en recepción</li>
+                                <li>• Cancelaciones gratuitas hasta 24h antes</li>
+                                <li>• Trae tu equipo deportivo y documentos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm Dialog Modal -->
+        <div v-if="showConfirm" class="modal" @click.self="hideConfirmDialog" 
+             style="display: flex !important; z-index: 99999 !important; position: fixed !important;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">
+                        <i :data-lucide="modifyingReservation ? 'edit' : 'check-circle'"></i>
+                        {{ modifyingReservation ? 'Modificar Reserva' : 'Confirmar Reserva' }}
+                    </h3>
+                    <p class="modal-description">
+                        {{ modifyingReservation ? 'Revisa los nuevos detalles de tu reserva' : 'Revisa los detalles de tu reserva antes de confirmar' }}
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <div class="confirm-details">
+                        <div class="detail-row">
+                            <strong>Cancha:</strong> {{ selectedCourt?.name }}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Deporte:</strong> {{ selectedSport }}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Fecha:</strong> {{ formatSelectedDate() }}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Hora:</strong> {{ selectedTime }}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Precio:</strong> ${{ formatPrice(selectedCourt?.pricePerHour) }}
+                        </div>
+                        <div class="detail-row" v-if="selectedCourt?.location">
+                            <strong>Ubicación:</strong> {{ selectedCourt.location.city }}, Chile
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary border" @click="hideConfirmDialog">
+                        <i data-lucide="x"></i>
+                        Cancelar
+                    </button>
+                    <button class="btn btn-primary border" @click="confirmReservation">
+                        <i :data-lucide="modifyingReservation ? 'save' : 'check'"></i>
+                        {{ modifyingReservation ? 'Guardar Cambios' : 'Confirmar Reserva' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cancel Dialog Modal -->
+        <div v-if="showCancel" class="modal" @click.self="hideCancelDialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">
+                        <i data-lucide="alert-triangle"></i>
+                        Cancelar Reserva
+                    </h3>
+                    <p class="modal-description">¿Estás seguro que deseas cancelar esta reserva? Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-body">
+                    <div class="cancel-details" v-if="selectedReservation">
+                        <div class="detail-row">
+                            <strong>Cancha:</strong> {{ selectedReservation.cancha }}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Fecha:</strong> {{ formatDate(selectedReservation.fecha) }}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Hora:</strong> {{ selectedReservation.hora }}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Código:</strong> {{ selectedReservation.codigo }}
+                        </div>
+                        <div class="detail-row" v-if="selectedReservation.ubicacion">
+                            <strong>Ubicación:</strong> {{ selectedReservation.ubicacion.city }}, Chile
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary border" @click="hideCancelDialog">
+                        <i data-lucide="x"></i>
+                        No, mantener reserva
+                    </button>
+                    <button class="btn btn-danger border" @click="confirmCancelReservation">
+                        <i data-lucide="trash-2"></i>
+                        Sí, cancelar reserva
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="src/services/api.js?v=19.0"></script>
+    <script src="src/components/vue-app.js?v=19.0"></script>
+</body>
+</html>

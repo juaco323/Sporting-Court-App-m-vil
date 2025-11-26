@@ -1,0 +1,488 @@
+# ====================================
+# ARCHIVOS CON DATOS SENSIBLES
+# ====================================
+
+# Variables de entorno (CRÍTICO - NO SUBIR)
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/.env.local
+
+# Archivos de configuración con credenciales
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+
+# Archivos de secretos
+secrets/
+secrets.json
+credentials.json
+
+# ====================================
+# PYTHON / BACKEND
+# ====================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+backend/venv/
+backend/env/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.venv
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ====================================
+# BASE DE DATOS
+# ====================================
+
+# SQLite databases (DATOS SENSIBLES)
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
+# PostgreSQL
+*.dump
+*.sql
+
+# MySQL
+*.mwb.bak
+
+# Database backups
+backup/
+*.bak
+*.backup
+
+# ====================================
+# DOCKER
+# ====================================
+
+# Docker volumes data
+docker-compose.override.yml
+.dockerignore
+
+# Docker build cache
+.docker/
+
+# Docker environment files (DATOS SENSIBLES)
+.env.docker
+.env.production
+
+# Docker logs
+docker-logs/
+
+# ====================================
+# NODE.JS / FRONTEND
+# ====================================
+
+# Dependencies
+node_modules/
+jspm_packages/
+
+# Production builds
+/build
+/dist
+/.next/
+/out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+/coverage
+.nyc_output
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# vuepress
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing
+.vscode-test
+
+# yarn
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# ====================================
+# IDEs y EDITORES
+# ====================================
+
+# Visual Studio Code
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+*.code-workspace
+
+# JetBrains IDEs (PyCharm, WebStorm, etc.)
+.idea/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ====================================
+# SISTEMAS OPERATIVOS
+# ====================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ====================================
+# LOGS Y TEMPORALES
+# ====================================
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*.swn
+*~
+
+# ====================================
+# ALEMBIC (Migraciones)
+# ====================================
+
+# No ignorar las migraciones, son parte del código
+# Solo ignorar archivos temporales de Alembic
+backend/alembic/__pycache__/
+backend/alembic/versions/__pycache__/
+
+# ====================================
+# OTROS
+# ====================================
+
+# Archivos comprimidos
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Archivos de respaldo
+*.orig
+*.bak
+*.backup
+
+# Certificados SSL (DATOS SENSIBLES)
+*.pem
+*.crt
+*.key
+ssl/
+certs/
+
+# Cache
+.cache/
+*.cache
+
+# ====================================
+# PROYECTO ESPECÍFICO
+# ====================================
+
+# Archivos de datos de prueba con información sensible
+# (mantener los .example para que otros puedan configurar)
+!.env.example
+!backend/.env.example
+
+# Archivos de datos locales
+local_data/
+user_data/
+
+# Uploads de usuarios
+uploads/
+media/user_uploads/
+
+# Reportes generados
+reports/
+exports/
+
+# ====================================
+# DEPLOYMENT
+# ====================================
+
+# Kubernetes
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Ansible
+*.retry
+
+# ====================================
+# NOTAS IMPORTANTES
+# ====================================
+
+# Este .gitignore protege:
+# 1. ✅ Variables de entorno (.env)
+# 2. ✅ Bases de datos SQLite (.db, .sqlite)
+# 3. ✅ Entornos virtuales Python (venv/)
+# 4. ✅ Archivos de caché (__pycache__/)
+# 5. ✅ Credenciales y certificados
+# 6. ✅ Logs y temporales
+# 7. ✅ Configuración de IDEs
+# 8. ✅ Archivos de sistema operativo
+
+# Los archivos .example SÍ se suben para que otros desarrolladores
+# puedan configurar su entorno local copiándolos.
