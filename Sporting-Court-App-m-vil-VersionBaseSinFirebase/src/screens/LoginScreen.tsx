@@ -12,8 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
-import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import * as WebBrowser from 'expo-web-browser';
 import FirebaseService from '../services/firebase';
 import ApiService from '../services/api';
@@ -28,20 +27,12 @@ export default function LoginScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
-  // Configurar Google Auth con el Client ID de Android
-  // En Development Build, solo se necesita el androidClientId
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: config.GOOGLE_OAUTH.androidClientId,
-  });
-
+  // Configurar Google Sign In
   useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      if (id_token) {
-        handleGoogleLogin(id_token);
-      }
-    }
-  }, [response]);
+    GoogleSignin.configure({
+      webClientId: config.GOOGLE_OAUTH.webClientId, // Cliente Web es necesario para obtener idToken
+    });
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -59,8 +50,41 @@ export default function LoginScreen({ navigation }: any) {
     }
   };
 
-  const handleGoogleLogin = async (idToken: string) => {
+  const onGoogleButtonPress = async () => {
     setLoadingGoogle(true);
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const signInResult = await GoogleSignin.signIn();
+      const result = signInResult as any;
+
+      // Obtener el idToken del resultado
+      // Nota: En versiones recientes de la librería, signIn devuelve un objeto con data
+      const idToken = result.data?.idToken || result.idToken;
+
+      if (idToken) {
+        await handleGoogleLogin(idToken);
+      } else {
+        throw new Error('No se obtuvo el token de Google');
+      }
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // Usuario canceló el login
+        console.log('Login cancelado por usuario');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // Operación en progreso
+        console.log('Login en progreso');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Error', 'Google Play Services no está disponible o desactualizado');
+      } else {
+        console.error('Error Google Sign-In:', error);
+        Alert.alert('Error', 'Ocurrió un error al iniciar sesión con Google');
+      }
+    } finally {
+      setLoadingGoogle(false);
+    }
+  };
+
+  const handleGoogleLogin = async (idToken: string) => {
     try {
       // Autenticar con Firebase
       const firebaseResult = await FirebaseService.loginWithGoogle(idToken);
@@ -74,7 +98,7 @@ export default function LoginScreen({ navigation }: any) {
           email: firebaseUser.email || '',
           full_name: firebaseUser.displayName || 'Usuario Google',
         });
-        
+
         setToken(backendResult.access_token);
         setUser(backendResult.user);
       } catch (error: any) {
@@ -86,7 +110,7 @@ export default function LoginScreen({ navigation }: any) {
             full_name: firebaseUser.displayName || 'Usuario Google',
             rut: `GOOGLE-${firebaseUser.uid.substring(0, 8)}`,
           });
-          
+
           setToken(registerResult.access_token);
           setUser(registerResult.user);
         } else {
@@ -96,8 +120,6 @@ export default function LoginScreen({ navigation }: any) {
     } catch (error: any) {
       console.error('Error en login con Google:', error);
       Alert.alert('Error', 'No se pudo iniciar sesión con Google');
-    } finally {
-      setLoadingGoogle(false);
     }
   };
 
@@ -153,8 +175,8 @@ export default function LoginScreen({ navigation }: any) {
 
             <TouchableOpacity
               style={[styles.button, styles.buttonGoogle]}
-              onPress={() => promptAsync()}
-              disabled={loading || loadingGoogle || !request}
+              onPress={onGoogleButtonPress}
+              disabled={loading || loadingGoogle}
             >
               {loadingGoogle ? (
                 <ActivityIndicator color="#fff" />
