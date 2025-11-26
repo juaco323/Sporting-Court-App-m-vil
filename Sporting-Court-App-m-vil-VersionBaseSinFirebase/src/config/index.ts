@@ -14,8 +14,8 @@ export const config = {
   // Configuración OAuth Google
   GOOGLE_OAUTH: {
     webClientId: "616387990630-5lrkiap1lp8ief1tqluvaui3tq31nesh.apps.googleusercontent.com",
-    androidClientId: "616387990630-5lrkiap1lp8ief1tqluvaui3tq31nesh.apps.googleusercontent.com",
-    iosClientId: "616387990630-5lrkiap1lp8ief1tqluvaui3tq31nesh.apps.googleusercontent.com",
+    androidClientId: "616387990630-815vi6mfq405mepfqk1slll19ai5tulu.apps.googleusercontent.com",
+    iosClientId: "616387990630-5lrkiap1lp8ief1tqluvaui3tq31nesh.apps.googleusercontent.com", // Usamos el web por defecto si no hay iOS específico
   },
 
   // Endpoints de canchas

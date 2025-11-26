@@ -15,13 +15,12 @@ import * as WebBrowser from 'expo-web-browser';
 WebBrowser.maybeCompleteAuthSession();
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAhoywGRKhZ1WAJx4sOOd0xXUjUinjZIII",
-  authDomain: "unab-sporting-court-b5294.firebaseapp.com",
-  projectId: "unab-sporting-court-b5294",
-  storageBucket: "unab-sporting-court-b5294.firebasestorage.app",
-  messagingSenderId: "955105231764",
-  appId: "1:955105231764:web:c4ab8c75ff9b3136870581",
-  measurementId: "G-KN2KLY1N6L"
+  apiKey: "AIzaSyDJDdtpg40VafcpF12FWxr4sz2xCJQyioE",
+  authDomain: "unab-sporting-court.firebaseapp.com",
+  projectId: "unab-sporting-court",
+  storageBucket: "unab-sporting-court.firebasestorage.app",
+  messagingSenderId: "616387990630",
+  appId: "1:616387990630:web:e46ba9cefc5a656fb4c9a7"
 };
 
 // Initialize Firebase
@@ -72,7 +71,7 @@ class FirebaseService {
   async getIdToken(): Promise<string | null> {
     const user = auth.currentUser;
     if (!user) return null;
-    
+
     try {
       return await user.getIdToken();
     } catch (error) {

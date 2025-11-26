@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "616387990630-815vi6mfq405mepfqk1slll19ai5tulu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cl.unab.sportingcourt",
+            "certificate_hash": "ac1509f061443cc8ced7a03aeab4d307cdabd8b2"
+          }
+        },
+        {
           "client_id": "616387990630-5lrkiap1lp8ief1tqluvaui3tq31nesh.apps.googleusercontent.com",
           "client_type": 3
         }
