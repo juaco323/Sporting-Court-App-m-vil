@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import ApiService from '../services/api';
-import { generateReservationPDF, sharePDF } from '../services/pdfService';
+import { generateReservationPDF, downloadPDF } from '../services/pdfService';
 import { useAuth } from '../contexts/AuthContext';
 import { Reservation } from '../types';
 
@@ -54,11 +54,12 @@ export default function ReservationsScreen({ navigation }: any) {
         reservation,
         userName: user.full_name,
       });
-      
-      await sharePDF(pdfUri);
+
+      const fileName = `reserva_${reservation.id}.pdf`;
+      await downloadPDF(pdfUri, fileName);
     } catch (error) {
       console.error('Error generando PDF:', error);
-      Alert.alert('Error', 'No se pudo generar el comprobante PDF');
+      Alert.alert('Error', 'No se pudo descargar el comprobante PDF');
     } finally {
       setGeneratingPDF(null);
     }
@@ -158,21 +159,23 @@ export default function ReservationsScreen({ navigation }: any) {
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.pdfButton}
-          onPress={() => handleGeneratePDF(item)}
-          disabled={generatingPDF === item.id}
-        >
-          {generatingPDF === item.id ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Text style={styles.pdfButtonIcon}>📄</Text>
-              <Text style={styles.pdfButtonText}>Descargar Comprobante</Text>
-            </>
-          )}
-        </TouchableOpacity>
-        
+        {item.status !== 'cancelled' && (
+          <TouchableOpacity
+            style={styles.pdfButton}
+            onPress={() => handleGeneratePDF(item)}
+            disabled={generatingPDF === item.id}
+          >
+            {generatingPDF === item.id ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Text style={styles.pdfButtonIcon}>📄</Text>
+                <Text style={styles.pdfButtonText}>Descargar Comprobante</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
         {item.status !== 'cancelled' && (
           <TouchableOpacity
             style={styles.cancelButton}

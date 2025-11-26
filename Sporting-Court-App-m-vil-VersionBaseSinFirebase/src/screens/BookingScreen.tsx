@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ApiService from '../services/api';
-import { generateReservationPDF, sharePDF } from '../services/pdfService';
+import { generateReservationPDF, downloadPDF } from '../services/pdfService';
 import { useAuth } from '../contexts/AuthContext';
 import { Court, Reservation } from '../types';
 
@@ -61,8 +61,9 @@ export default function BookingScreen({ route, navigation }: any) {
         reservation: lastReservation,
         userName: user.full_name,
       });
-      
-      await sharePDF(pdfUri);
+
+      const fileName = `reserva_${lastReservation.id}.pdf`;
+      await downloadPDF(pdfUri, fileName);
     } catch (error) {
       console.error('Error generando PDF:', error);
       Alert.alert('Error', 'No se pudo generar el comprobante PDF');
@@ -100,12 +101,8 @@ export default function BookingScreen({ route, navigation }: any) {
 
       Alert.alert(
         '¡Reserva Exitosa!',
-        `Tu reserva para ${court.name} el ${formatDate(selectedDate)} a las ${selectedTime} ha sido confirmada.\n\nCódigo de confirmación: #${reservation.id}`,
+        `Tu reserva para ${court.name} el ${formatDate(selectedDate)} a las ${selectedTime} ha sido confirmada.\n\nCódigo de confirmación: #${reservation.id}\n\nRecuerda ir a la sección de Mis reservas para poder descargar el comprobante de reserva`,
         [
-          {
-            text: 'Descargar Comprobante',
-            onPress: handleGeneratePDF,
-          },
           {
             text: 'Ver mis reservas',
             onPress: () => {
@@ -122,7 +119,7 @@ export default function BookingScreen({ route, navigation }: any) {
       );
     } catch (error: any) {
       let errorMessage = 'No se pudo crear la reserva';
-      
+
       if (error.response?.data?.detail) {
         const detail = error.response.data.detail;
         if (Array.isArray(detail)) {
@@ -137,7 +134,7 @@ export default function BookingScreen({ route, navigation }: any) {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       Alert.alert('Error al Reservar', errorMessage);
     } finally {
       setLoading(false);

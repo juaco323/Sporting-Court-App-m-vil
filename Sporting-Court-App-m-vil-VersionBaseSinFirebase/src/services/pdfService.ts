@@ -1,5 +1,7 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 import { Reservation } from '../types';
 
 interface ReservationPDFData {
@@ -312,8 +314,49 @@ export const sharePDF = async (pdfUri: string) => {
   }
 };
 
-// La función downloadPDF simplemente llama a sharePDF ya que en móvil
-// compartir es la forma estándar de "descargar" archivos
-export const downloadPDF = async (pdfUri: string) => {
-  return sharePDF(pdfUri);
+const saveAndroidFile = async (fileUri: string, fileName: string) => {
+  try {
+    // Verificar si SAF está disponible
+    if (!FileSystem.StorageAccessFramework) {
+      console.warn('StorageAccessFramework no está disponible, usando compartir en su lugar');
+      return false;
+    }
+
+    const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+    if (permissions.granted) {
+      const base64 = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64
+      });
+
+      const createdUri = await FileSystem.StorageAccessFramework.createFileAsync(
+        permissions.directoryUri,
+        fileName,
+        'application/pdf'
+      );
+
+      await FileSystem.writeAsStringAsync(createdUri, base64, {
+        encoding: FileSystem.EncodingType.Base64
+      });
+
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error guardando archivo Android:', error);
+    // Si falla SAF, retornamos false para intentar compartir
+    return false;
+  }
+};
+
+export const downloadPDF = async (pdfUri: string, fileName: string = 'reserva.pdf') => {
+  if (Platform.OS === 'android') {
+    const saved = await saveAndroidFile(pdfUri, fileName);
+    if (!saved) {
+      // Fallback a compartir si falla el guardado o no hay permisos
+      return sharePDF(pdfUri);
+    }
+  } else {
+    return sharePDF(pdfUri);
+  }
 };
