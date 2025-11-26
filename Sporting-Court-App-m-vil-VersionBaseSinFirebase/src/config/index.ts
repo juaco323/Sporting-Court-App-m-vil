@@ -1,0 +1,34 @@
+﻿const API_BASE_URL = "http://10.0.2.2:8000/api/v1";
+
+export const config = {
+  API_BASE_URL,
+
+  // Endpoints de autenticación
+  AUTH: {
+    LOGIN: `${API_BASE_URL}/auth/login`,
+    REGISTER: `${API_BASE_URL}/auth/register`,
+    FIREBASE_LOGIN: `${API_BASE_URL}/auth/firebase/login`,
+    FIREBASE_REGISTER: `${API_BASE_URL}/auth/firebase/register`,
+  },
+
+  // Configuración OAuth Google
+  GOOGLE_OAUTH: {
+    webClientId: "616387990630-5lrkiap1lp8ief1tqluvaui3tq31nesh.apps.googleusercontent.com",
+    androidClientId: "616387990630-5lrkiap1lp8ief1tqluvaui3tq31nesh.apps.googleusercontent.com",
+    iosClientId: "616387990630-5lrkiap1lp8ief1tqluvaui3tq31nesh.apps.googleusercontent.com",
+  },
+
+  // Endpoints de canchas
+  COURTS: {
+    LIST: `${API_BASE_URL}/courts`,
+    DETAIL: (id: number) => `${API_BASE_URL}/courts/${id}`,
+  },
+
+  // Endpoints de reservas
+  BOOKINGS: {
+    CREATE: `${API_BASE_URL}/bookings`,
+    LIST: `${API_BASE_URL}/bookings`,
+    DETAIL: (id: number) => `${API_BASE_URL}/bookings/${id}`,
+    CANCEL: (id: number) => `${API_BASE_URL}/bookings/${id}/cancel`,
+  },
+};
