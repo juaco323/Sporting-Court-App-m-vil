@@ -30,11 +30,15 @@ export interface Reservation {
   user_id: number;
   court_id: number;
   date: string;
-  start_time: string;
-  end_time: string;
+  time: string; // Campo que viene del backend (HH:MM:SS)
+  duration?: number; // Duración en minutos
+  start_time?: string; // Mantenemos para compatibilidad
+  end_time?: string; // Mantenemos para compatibilidad
   total_price: number;
   status: 'pending' | 'confirmed' | 'cancelled';
+  notes?: string; // Notas opcionales
   created_at: string;
+  updated_at?: string;
   court?: Court;
   user?: User;
 }

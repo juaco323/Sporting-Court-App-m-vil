@@ -7,17 +7,22 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ApiService from '../services/api';
-import { Court } from '../types';
+import { generateReservationPDF, sharePDF } from '../services/pdfService';
+import { useAuth } from '../contexts/AuthContext';
+import { Court, Reservation } from '../types';
 
 export default function BookingScreen({ route, navigation }: any) {
   const { court }: { court: Court } = route.params;
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lastReservation, setLastReservation] = useState<Reservation | null>(null);
 
   const timeSlots = [
     '08:00', '09:00', '10:00', '11:00',
@@ -48,6 +53,22 @@ export default function BookingScreen({ route, navigation }: any) {
     return `${endHour}:00`;
   };
 
+  const handleGeneratePDF = async () => {
+    if (!lastReservation || !user) return;
+
+    try {
+      const pdfUri = await generateReservationPDF({
+        reservation: lastReservation,
+        userName: user.full_name,
+      });
+      
+      await sharePDF(pdfUri);
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      Alert.alert('Error', 'No se pudo generar el comprobante PDF');
+    }
+  };
+
   const handleReserve = async () => {
     if (!selectedTime) {
       Alert.alert('Error', 'Por favor selecciona un horario');
@@ -59,24 +80,43 @@ export default function BookingScreen({ route, navigation }: any) {
       const dateStr = selectedDate.toISOString().split('T')[0];
       const endTime = calculateEndTime(selectedTime);
 
-      await ApiService.createReservation({
+      // Formatear las horas con segundos
+      const startTimeFormatted = `${selectedTime}:00`;
+      const endTimeFormatted = `${endTime}:00`;
+
+      const reservation = await ApiService.createReservation({
         court_id: court.id,
         date: dateStr,
-        start_time: selectedTime,
-        end_time: endTime,
+        start_time: startTimeFormatted,
+        end_time: endTimeFormatted,
+      });
+
+      // Guardar la reserva para poder generar el PDF
+      setLastReservation({
+        ...reservation,
+        court: court,
+        user: user,
       });
 
       Alert.alert(
         '¡Reserva Exitosa!',
-        `Tu reserva para ${court.name} el ${formatDate(selectedDate)} a las ${selectedTime} ha sido confirmada.`,
+        `Tu reserva para ${court.name} el ${formatDate(selectedDate)} a las ${selectedTime} ha sido confirmada.\n\nCódigo de confirmación: #${reservation.id}`,
         [
           {
+            text: 'Descargar Comprobante',
+            onPress: handleGeneratePDF,
+          },
+          {
             text: 'Ver mis reservas',
-            onPress: () => navigation.navigate('Reservations'),
+            onPress: () => {
+              navigation.navigate('MainTabs', { screen: 'Reservations' });
+            },
           },
           {
             text: 'Volver al inicio',
-            onPress: () => navigation.navigate('Home'),
+            onPress: () => {
+              navigation.navigate('MainTabs', { screen: 'Home' });
+            },
           },
         ]
       );
@@ -89,12 +129,16 @@ export default function BookingScreen({ route, navigation }: any) {
           errorMessage = detail.map(err => err.msg || err).join('\n');
         } else if (typeof detail === 'string') {
           errorMessage = detail;
+          // Si el backend dice que está reservada, agregar info de la cancha
+          if (detail.includes('ya está reservada')) {
+            errorMessage = `${court.name} (ID: ${court.id})\n\n${detail}\n\nNota: Verifica que estés reservando la cancha correcta.`;
+          }
         }
       } else if (error.message) {
         errorMessage = error.message;
       }
       
-      Alert.alert('Error', errorMessage);
+      Alert.alert('Error al Reservar', errorMessage);
     } finally {
       setLoading(false);
     }

@@ -144,24 +144,47 @@ class ApiService {
   // ============ Reservas ============
 
   async getMyReservations(): Promise<Reservation[]> {
-    const response = await this.api.get<Reservation[]>('/reservations/me');
-    return response.data;
+    try {
+      // Primero intentar con /reservations/me
+      const response = await this.api.get<Reservation[]>('/reservations/me');
+      return response.data;
+    } catch (error: any) {
+      // Si falla, obtener el user_id y usar /reservations?user_id=X
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('Debe iniciar sesión para ver sus reservas');
+      }
+      const response = await this.api.get<Reservation[]>(`/reservations?user_id=${currentUser.id}`);
+      return response.data;
+    }
   }
 
   async createReservation(data: CreateReservationData): Promise<Reservation> {
-    // Obtener el user_id del usuario actual
-    const currentUser = await this.getCurrentUser();
-    if (!currentUser) {
-      throw new Error('Debe iniciar sesión para hacer una reserva');
+    try {
+      // Obtener user_id del usuario actual
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('Debe iniciar sesión para hacer una reserva');
+      }
+
+      // El backend espera "time" en lugar de "start_time"
+      const reservationData = {
+        user_id: currentUser.id,
+        court_id: data.court_id,
+        date: data.date,
+        time: data.start_time, // El backend usa "time" en lugar de "start_time"
+        status: 'pending',
+      };
+      
+      console.log('Enviando reserva:', JSON.stringify(reservationData, null, 2));
+      
+      const response = await this.api.post<Reservation>('/reservations', reservationData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error completo:', error);
+      console.error('Error response:', JSON.stringify(error.response?.data, null, 2));
+      throw error;
     }
-    
-    const reservationData = {
-      ...data,
-      user_id: currentUser.id,
-    };
-    
-    const response = await this.api.post<Reservation>('/reservations', reservationData);
-    return response.data;
   }
 
   async cancelReservation(id: number): Promise<void> {

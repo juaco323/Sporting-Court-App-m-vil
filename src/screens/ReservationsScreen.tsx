@@ -10,12 +10,16 @@ import {
   RefreshControl,
 } from 'react-native';
 import ApiService from '../services/api';
+import { generateReservationPDF, sharePDF } from '../services/pdfService';
+import { useAuth } from '../contexts/AuthContext';
 import { Reservation } from '../types';
 
 export default function ReservationsScreen({ navigation }: any) {
+  const { user } = useAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState<number | null>(null);
 
   useEffect(() => {
     loadReservations();
@@ -24,9 +28,12 @@ export default function ReservationsScreen({ navigation }: any) {
   const loadReservations = async () => {
     try {
       const data = await ApiService.getMyReservations();
+      console.log('Reservas recibidas:', data);
       setReservations(data);
-    } catch (error) {
-      Alert.alert('Error', 'No se pudieron cargar las reservas');
+    } catch (error: any) {
+      console.error('Error cargando reservas:', error);
+      console.error('Error response:', error.response?.data);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudieron cargar las reservas');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -36,6 +43,25 @@ export default function ReservationsScreen({ navigation }: any) {
   const onRefresh = () => {
     setRefreshing(true);
     loadReservations();
+  };
+
+  const handleGeneratePDF = async (reservation: Reservation) => {
+    if (!user) return;
+
+    setGeneratingPDF(reservation.id);
+    try {
+      const pdfUri = await generateReservationPDF({
+        reservation,
+        userName: user.full_name,
+      });
+      
+      await sharePDF(pdfUri);
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      Alert.alert('Error', 'No se pudo generar el comprobante PDF');
+    } finally {
+      setGeneratingPDF(null);
+    }
   };
 
   const handleCancelReservation = (reservation: Reservation) => {
@@ -117,23 +143,45 @@ export default function ReservationsScreen({ navigation }: any) {
         <View style={styles.infoRow}>
           <Text style={styles.infoIcon}>⏰</Text>
           <Text style={styles.infoText}>
-            {item.start_time} - {item.end_time}
+            {item.time ? item.time.substring(0, 5) : 'N/A'}
+            {item.duration ? ` (${item.duration} hr)` : ''}
           </Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoIcon}>💰</Text>
           <Text style={styles.infoText}>${item.total_price.toLocaleString()}</Text>
         </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoIcon}>🔖</Text>
+          <Text style={styles.infoText}>Código: #{item.id}</Text>
+        </View>
       </View>
 
-      {item.status !== 'cancelled' && (
+      <View style={styles.actions}>
         <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => handleCancelReservation(item)}
+          style={styles.pdfButton}
+          onPress={() => handleGeneratePDF(item)}
+          disabled={generatingPDF === item.id}
         >
-          <Text style={styles.cancelButtonText}>Cancelar Reserva</Text>
+          {generatingPDF === item.id ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Text style={styles.pdfButtonIcon}>📄</Text>
+              <Text style={styles.pdfButtonText}>Descargar Comprobante</Text>
+            </>
+          )}
         </TouchableOpacity>
-      )}
+        
+        {item.status !== 'cancelled' && (
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => handleCancelReservation(item)}
+          >
+            <Text style={styles.cancelButtonText}>Cancelar Reserva</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 
@@ -251,6 +299,26 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 16,
     color: '#666',
+  },
+  actions: {
+    gap: 10,
+  },
+  pdfButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pdfButtonIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  pdfButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   cancelButton: {
     borderWidth: 1,
