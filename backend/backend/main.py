@@ -67,7 +67,7 @@ app.include_router(oauth_router)
 # ============ Root Endpoint ============
 @app.get("/", tags=["Root"])
 def read_root():
-    """Endpoint raÃ­z de la API"""
+    """Endpoint raíz de la API"""
     return {
         "message": "Bienvenido a UNAB Sporting Court API",
         "version": "1.0.0",

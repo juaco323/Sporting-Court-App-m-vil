@@ -1,10 +1,10 @@
-(function(global) {
+(function (global) {
     'use strict';
 
     // Configuración de la API
     const API_BASE_URL = global.ENV?.API_BASE_URL || 'http://localhost:8000';
     const API_VERSION = '/api/v1';
-    
+
     // Helper para obtener el token JWT del localStorage
     const getAuthToken = () => {
         return localStorage.getItem('auth_token');
@@ -36,7 +36,7 @@
         // ============================================
         // AUTENTICACIÓN
         // ============================================
-        
+
         /**
          * Registrar un nuevo usuario
          * @param {Object} userData - {email, password, full_name}
@@ -68,12 +68,12 @@
                 body: JSON.stringify({ email, password })
             });
             const data = await handleResponse(response);
-            
+
             // Guardar token en localStorage
             if (data.access_token) {
                 localStorage.setItem('auth_token', data.access_token);
             }
-            
+
             return data;
         },
 
@@ -282,7 +282,7 @@
     // ENV shim
     global.ENV = global.ENV || {
         OPENWEATHER_API_KEY: '61f6915417ca53ccd95fb615cc7fb019',
-        API_BASE_URL: 'http://localhost:8000'
+        API_BASE_URL: 'http://54.226.21.206:8080'
     };
 })(window);
 
