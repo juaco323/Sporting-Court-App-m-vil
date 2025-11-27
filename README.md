@@ -31,7 +31,7 @@ graph LR
     *   **Estado:** ✅ **ACTIVO**. Sirve la API RESTful en `/api/v1`.
 
 2.  **Aplicación Móvil (Local)**
-    *   **Ubicación:** Local (`Sporting-Court-App-m-vil-VersionBaseSinFirebase`)
+    *   **Ubicación:** Local (`Sporting-Court-App-m-vil`)
     *   **Tecnología:** React Native, Expo.
     *   **Estado:** ✅ **ACTIVO**. Configurada para consumir la API remota.
 
@@ -50,7 +50,7 @@ Para ejecutar la app móvil y conectarla al backend remoto:
 
 1.  Navega a la carpeta del proyecto móvil:
     ```powershell
-    cd Sporting-Court-App-m-vil-VersionBaseSinFirebase
+    cd Sporting-Court-App-m-vil
     ```
 2.  Instala las dependencias:
     ```powershell
