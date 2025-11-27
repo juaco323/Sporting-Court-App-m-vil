@@ -11,12 +11,12 @@ El sistema opera bajo un modelo **Cliente-Servidor Híbrido**:
 ```mermaid
 graph LR
     subgraph "Tu Máquina Local"
-        MobileApp[📱 App Móvil (Expo/Android)]
+        MobileApp["📱 App Móvil (Expo/Android)"]
     end
 
     subgraph "AWS Cloud (EC2)"
-        Backend[⚙️ Backend API (FastAPI)]
-        DB[(🗄️ Base de Datos SQLite)]
+        Backend["⚙️ Backend API (FastAPI)"]
+        DB[("🗄️ Base de Datos SQLite")]
     end
 
     MobileApp -- "HTTP Requests (JSON)" --> Backend
